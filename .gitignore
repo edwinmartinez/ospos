@@ -1,0 +1,7 @@
+# ignoring temp files
+*~
+
+# ignoring metadata (eclipse stuff)
+.metadata/
+.project
+
