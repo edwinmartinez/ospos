@@ -6,8 +6,9 @@
         <title><?php echo $this->config->item('company'); ?></title>
         <link rel="stylesheet" rev="stylesheet" href="<?php echo base_url();?>css/jqmobile.css" />
         <link rel="stylesheet" href="<?php echo base_url();?>css/jquery.mobile.structure-1.2.0.min.css" />
-        <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-        <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+        <script src="<?php echo base_url();?>js/jquery-1.8.2.min.js"></script>
+        <script src="<?php echo base_url();?>js/jquery.mobile-1.2.0.min.js"></script>
+        <script src="<?php echo base_url();?>js/mustache.js"></script>
     </head>
     <body>
         <div data-role="page" data-theme="c">

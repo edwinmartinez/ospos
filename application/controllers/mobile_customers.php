@@ -20,7 +20,52 @@ class Mobile_customers extends Customers
         $this->load->view("mobile/customers",$data);
     }
     
-    
+	
+	public function customersJson($timestamp='')
+	{
+		
+		$config['base_url'] = site_url('?c=mobile_customers&m=index');
+        $config['total_rows'] = $this->Customer->count_all();
+        $config['per_page'] = '3'; 
+        $this->pagination->initialize($config);
+        		
+		$CI =& get_instance();
+		
+        $this->table_data_rows='';
+        $people = $this->Customer->get_all();
+        foreach($people->result() as $person)
+        {
+           // $this->data_rows.=$this->get_person_data_row($person,$controller);
+           	$this->data_rows .= '{';
+			$this->data_rows .= '"firstName":"'.character_limiter($person->first_name,13).'",';
+			$this->data_rows .= '"lastName":'.character_limiter($person->last_name,13).'",';
+			$this->data_rows .= '"email":'.character_limiter($person->email,30).'",';
+			$this->data_rows .= '"phone":'.character_limiter($person->phone_number,20);
+			$this->data_rows .= '},';
+			$peopleArray[] =  array(
+									'person_id' => $person->person_id,
+									'first_name' => character_limiter($person->first_name,13), 
+									'last_name' => character_limiter($person->last_name,13),
+									'email' => character_limiter($person->email,30),
+									'phone_number' => character_limiter($person->phone_number,20),
+									'address_1' => character_limiter($person->address_1,20) ,
+									'address_2' => character_limiter($person->address_2,20),
+									'city' => character_limiter($person->city,20),
+									'state' => character_limiter($person->state,20),
+									'zip' => character_limiter($person->zip,14),
+									'country' => character_limiter($person->country,20)
+									); 
+        }
+        
+
+		$data['json'] = '{"customersData":{"customercount":'.$people->num_rows().',"customers":'.json_encode($peopleArray).'}}';
+		//$data['json'] =json_encode($peopleArray);
+        $this->load->view('json_view', $data);
+        //echo $data['json'];
+
+	}
+ 
+   
     /*
 Gets the html table to manage people.
 */
@@ -58,7 +103,8 @@ Gets the html data rows for the people.
         
         foreach($people->result() as $person)
         {
-            $this->table_data_rows.=$this->get_person_data_row($person,$controller);
+           // $this->table_data_rows.=parent::parent::get_person_data_row($person,$controller);
+            
         }
         
         if($people->num_rows()==0)
@@ -69,23 +115,6 @@ Gets the html data rows for the people.
         return $this->table_data_rows;
     }
     
-    function get_person_data_row($person,$controller)
-    {
-        $CI =& get_instance();
-        $controller_name=strtolower(get_class($CI));
-        $width = $controller->get_form_width();
-    
-        $table_data_row='<tr>';
-        //$table_data_row.="<td width='5%'><input type='checkbox' id='person_$person->person_id' value='".$person->person_id."'/></td>";
-        $table_data_row.='<td width="20%">'.character_limiter($person->last_name,13).'</td>';
-        $table_data_row.='<td width="20%">'.character_limiter($person->first_name,13).'</td>';
-        $table_data_row.='<td width="30%">'.mailto($person->email,character_limiter($person->email,22)).'</td>';
-        $table_data_row.='<td width="20%">'.character_limiter($person->phone_number,13).'</td>';        
-        $table_data_row.='<td width="5%">'.anchor($controller_name."/view/$person->person_id/width:$width", $CI->lang->line('common_edit'),array('class'=>'thickbox','title'=>$CI->lang->line($controller_name.'_update'))).'</td>';        
-        $table_data_row.='</tr>';
-        
-        return $table_data_row;
-    }
 
 }
 
