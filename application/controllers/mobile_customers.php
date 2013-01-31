@@ -35,13 +35,6 @@ class Mobile_customers extends Customers
         $people = $this->Customer->get_all();
         foreach($people->result() as $person)
         {
-           // $this->data_rows.=$this->get_person_data_row($person,$controller);
-           	$this->data_rows .= '{';
-			$this->data_rows .= '"firstName":"'.character_limiter($person->first_name,13).'",';
-			$this->data_rows .= '"lastName":'.character_limiter($person->last_name,13).'",';
-			$this->data_rows .= '"email":'.character_limiter($person->email,30).'",';
-			$this->data_rows .= '"phone":'.character_limiter($person->phone_number,20);
-			$this->data_rows .= '},';
 			$peopleArray[] =  array(
 									'person_id' => $person->person_id,
 									'first_name' => character_limiter($person->first_name,13), 
@@ -58,7 +51,7 @@ class Mobile_customers extends Customers
         }
         
 
-		$data['json'] = '{"customersData":{"customercount":'.$people->num_rows().',"customers":'.json_encode($peopleArray).'}}';
+		$data['json'] = '{"peopleData":{"totalcount":'.$people->num_rows().',"people":'.json_encode($peopleArray).'}}';
 		//$data['json'] =json_encode($peopleArray);
         $this->load->view('json_view', $data);
         //echo $data['json'];
