@@ -1,9 +1,12 @@
 <?php $this->load->view("mobile/header"); ?>
+<div data-role="page" data-theme="c" id="peopleList">
+	<header data-role="header" data-position="inline">
+		<h1><?php echo $this->config->item('company'); ?></h1>
+	</header>
 
-
-
+<article data-role="content">
 <?php echo $this->lang->line('common_welcome_message'); ?>
-<!--<div id="home_module_list">-->
+
     <ul data-role="listview" data-inset="true" data-filter="false">
 	<?php
 	foreach($allowed_modules->result() as $module) {
@@ -14,5 +17,7 @@
 	}
 	?>
 	</ul>
-<!--</div>-->
+</article>
+
+</div>
 <?php $this->load->view("mobile/footer"); ?>

@@ -41,12 +41,13 @@ $(document).ready(
 		}).done(function(json){
 			personData = json.person;
 			console.log(personData);
+			personData.taxable = personData.taxable == 1?true:false;
 			var template = $('#personDetail_template').html();
 			var html = Mustache.to_html(template, personData);
 			$('#personDetail_holder').html(html);
 			$('#personDetail_holder').trigger("create");
 		});
-		console.log(personData);
+		
 	};
 	
 	var showPeople = function( json ) {
@@ -103,7 +104,7 @@ $(document).ready(
 </div> <!-- end of page -->
 
 <div data-role="page" id="personView">
-	<header data-role="header" data-position="inline">
+	<header data-role="header" data-position="fixed">
 		<h1><?php echo $this->config->item('company'); ?></h1>
 		<a data-icon="grid" href="#peopleList"><?php echo $this->lang->line('module_customers'); ?></a>
 	</header>
@@ -166,21 +167,38 @@ var_dump($CI->lang);*/
 		</div>
 		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
 			<label for="state" class="ui-input-text"><?php echo $this->lang->line('common_state'); ?></label>
-			<input id="state" type="text" value="{{state}}">
+			<input name="state" id="state" type="text" value="{{state}}">
 		</div>
 		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
 			<label for="country" class="ui-input-text"><?php echo $this->lang->line('common_country'); ?></label>
-			<input id="country" type="text" value="{{country}}">
-		</div>
-
-		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >		
-		<label for="flip-1">Taxable:</label>
-			<select name="flip-1" id="flip-1" data-role="slider">
-				<option value="off">Off</option>
-				<option value="on">On</option>
-			</select>
+			<input name="country" id="country" type="text" value="{{country}}">
 		</div>
 		
+		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
+		<label for"account_number" class="ui-input-text"><?php echo $this->lang->line('customers_account_number'); ?></label>
+		<input name="account_number" id="account_number" type="text" value="{{account_number}}">
+			<?php /* echo form_input(array(
+		'name'=>'account_number',
+		'id'=>'account_number',
+		'value'=>$person_info->account_number)
+		); */ ?>
+		</div>
+		
+		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >		
+		<label for="taxable"  class="ui-input-text"><?php echo $this->lang->line('customers_taxable'); ?></label>
+			<select name="taxable" id="taxable" data-role="slider">
+			{{#taxable}}
+				<option value="0"><?php echo $this->lang->line('common_no'); ?></option>
+				<option value="1" selecte><?php echo $this->lang->line('common_yes'); ?></option>
+			{{/taxable}}
+			{{^taxable}}
+				<option value="0" selected><?php echo $this->lang->line('common_no'); ?></option>
+				<option value="1"><?php echo $this->lang->line('common_yes'); ?></option>
+			{{/taxable}}
+			</select>
+			<?php //echo form_checkbox('taxable', '1', $person_info->taxable == '' ? TRUE : (boolean)$person_info->taxable);?>
+		</div>
+	
 		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br">
 			<label for="textarea" class="ui-input-text"><?php echo $this->lang->line('common_comments'); ?></label>
 			<textarea name="textarea" id="comments">{{comments}}</textarea>
