@@ -3,53 +3,78 @@
 <script type="text/javascript">
 
 $(document).ready(
-function() {
-	var data = {};
+	function() {
+	var peopleData = {};
 	var page = 1;
-	var allJsonData = {};
+	//var allJsonPeopleData = {};
 
 	var getPeople = function(groupType,personId){
 		 if(typeof(groupType)==='undefined') groupType = 'customers';
-		 if(typeof(personId) === 'undefined') personId = false;
+		 if(typeof(personId) === 'undefined') personId = -1;
 		$.ajax({
 		
 		url: '<?php echo site_url('mobile_customers/customersJson/'); ?>',
 		type: 'POST',
 		data: 'grouptype='+groupType+'&personId='+personId+'&page='+page,
-		success: function(json) {
-			//console.log("JSON Data: " + json.peopleData.totalcount);
-		},
 		error: function(e) {
 			//called when there is an error
-			//console.log(e.responseText);
+			console.log(e.responseText);
 		}
 	}).done(function(json){
+		peopleData = json.peopleData;	
 		showPeople(json);
-		//allJsonData = json;
 		});
 	};
 	
-
-	var showPeople = function( json ) {
-		data = json.peopleData;
-		console.log(data);
-		var template = $('#customersTable').html();
-		var html = Mustache.to_html(template, data);
-		$('#table_holder').html(html);
-		$('.editLink').on("click", editPerson);
-	}
+	var getCustomer = function(personId){
+		 if(typeof(groupType)==='undefined') groupType = 'customers';
+		 if(typeof(personId) === 'undefined') personId = -1;
+		var personData;
+		$.ajax({
+		
+		url: '<?php echo site_url('mobile_customers/customerJson/'); ?>/'+personId,
+		type: 'POST',
+		//data: 'person_id='+personId,
+		error: function(e) {
+			console.log(e.responseText);
+		}
+		}).done(function(json){
+			personData = json.person;
+			console.log(personData);
+			var template = $('#personDetail_template').html();
+			var html = Mustache.to_html(template, personData);
+			$('#personDetail_holder').html(html);
+			$('#personDetail_holder').trigger("create");
+		});
+		console.log(personData);
+	};
 	
+	var showPeople = function( json ) {
+		
+		console.log(peopleData);
+		var template = $('#peopleList_template').html();
+		var html = Mustache.to_html(template, peopleData);
+		$('#list_holder').html(html);
+		$('#list_holder').trigger("create");
+		$('.personRow').on("click", editPerson);
+	}
+
 	var editPerson = function(e) {
-		console.log(e);
-		var person_id = $(e.currentTarget).attr('id').substr(5);
-		var data = {};
-		data.person_id = person_id;
-		$('#row_'+person_id).css("display","none");
-		var template = $('#customerDetails').html();
-		var html = Mustache.to_html(template, data);
-		$('#row_'+person_id).after(html);
-		$('#personDetail_'+person_id).trigger("create");
-		console.log(person_id);
+		
+		//console.log($(this).attr('class'));
+		//console.log($(this).find('a').attr('id'));
+	
+		var data ={};
+		var personJson;
+		// get the id of the clicked person
+		var person_id = $(this).find('a').attr('id');
+		personJson = getCustomer(person_id);
+		//console.log(personJson);
+		//data = personJson;
+		//var template = $('#personDetail_template').html();
+		//var html = Mustache.to_html(template, data);
+		//$('#personDetail_holder').html(html);
+		//$('#personDetail_holder').trigger("create");
 	}
 	getPeople();
 }
@@ -57,45 +82,60 @@ function() {
 );
 </script>
 
+<div data-role="page" data-theme="c" id="peopleList">
+	<header data-role="header" data-position="inline">
+		<h1><?php echo $this->config->item('company'); ?></h1>
+	</header>
 
-<h1><?php echo $this->lang->line('common_list_of').' '.$this->lang->line('module_customers'); ?></h1>
-<?php echo $this->pagination->create_links();?>
+	<article data-role="content" data-theme="b">
+		<h1><?php echo $this->lang->line('common_list_of').' '.$this->lang->line('module_customers'); ?></h1>
 
-<div id="table_action_header">
-        <?php echo form_open("$controller_name/search",array('id'=>'search_form')); ?>
-            <input  type="search" name ='search' id='search' data-clear-btn="true" placeholder="Search" />
-        </form>
-</div>
+		<!--<div id="table_action_header">
+				<?php echo form_open("$controller_name/search",array('id'=>'search_form')); ?>
+					<input  type="search" name ='search' id='search' data-clear-btn="true" placeholder="Search" />
+				</form>
+		</div>-->
 
-<div id="table_holder"></div>
+		<div id="list_holder"></div>
 
-<div id="feedback_bar"></div>
+		<div id="feedback_bar"></div>
+	</article>
+</div> <!-- end of page -->
 
+<div data-role="page" id="personView">
+	<header data-role="header" data-position="inline">
+		<h1><?php echo $this->config->item('company'); ?></h1>
+		<a data-icon="grid" href="#peopleList"><?php echo $this->lang->line('module_customers'); ?></a>
+	</header>
+	
+	<article data-role="content" id="personDetail_holder"></article>
+	
+<?php 
+/*$CI =& get_instance();
+var_dump($CI->lang);*/
+?>
+</div> <!-- end of page -->
+	
+<script id="peopleList_template" type="text/template">
 
-<script id="customersTable" type="text/template">
-	<table data-role="table" id="customers-table" data-mode="reflow" class="table-stroke table-stripe">
-	<thead><tr>
-		<td><?php echo $this->lang->line('common_first_name'); ?></td>
-		<td><?php echo $this->lang->line('common_last_name'); ?></td>
-		<td><?php echo $this->lang->line('common_email'); ?></td>
-		<td><?php echo $this->lang->line('common_phone_number'); ?></td>
-		<td>&nbsp;</td>
-		</tr>
-		</thead>
-	{{#people}}<tr id="row_{{person_id}}">
-		<td width="20%">{{first_name}}</td><td width="20%">{{last_name}}</td>
-		<td width="30%">{{email}}</td><td width="20%">{{phone_number}}</td>
-		<td><a href="#" id="edit_{{person_id}}" data-role="button" data-icon="arrow-d"  data-mini="true" data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-theme="b" class="editLink ui-btn ui-shadow ui-btn-corner-all ui-btn-icon-left ui-btn-up-b"><span class="ui-btn-inner ui-btn-corner-all"><span class="ui-btn-text"><?php echo $this->lang->line('common_edit'); ?></span><span  class="ui-icon ui-icon-arrow-d ui-icon-shadow"/></span></a></td>
-		</tr>
+	<ul id="peopleList" data-role="listview" data-inset="true" data-filter="true">	
+	{{#people}}
+	<li id="row_{{person_id}}" class="personRow">
+		<a href="#personView" id="{{person_id}}"><h1>{{first_name}} {{last_name}}</h1>
+		<p>{{#email}}{{email}}<br />{{/email}} {{phone_number}}</p>
+		</a>
+		</li>
 	{{/people}} 
-	</table>
+	</ul>
+
 </script>
 
-<script id="customerDetails" type="text/template">
-<tr id="personDetail_{{person_id}}"><td colspan="5">
+<script id="personDetail_template" type="text/template">
+
 <form>
 	<div class="ui-body ui-body-b">
-		<!--<fieldset class="ui-grid-a">-->
+		
+		<input type="hidden" name="person_id" value="{{person_id}}" />
 		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
 			<label for="first_name"><?php echo $this->lang->line('common_first_name'); ?></label>
 			<input id="first_name" type="text" value="{{first_name}}">
@@ -112,20 +152,52 @@ function() {
 			<label for="phone_number"><?php echo $this->lang->line('common_phone_number'); ?></label>
 			<input id="phone_number" type="text" value="{{phone_number}}">
 		</div>
-		
 		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
 			<label for="address_1" class="ui-input-text"><?php echo $this->lang->line('common_address_1'); ?></label>
-			<input id="adress_1" type="text" value="{{address_1}}">
-		</div> 
+			<input id="address_1" type="text" value="{{address_1}}">
+		</div>
+		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
+			<label for="address_2" class="ui-input-text"><?php echo $this->lang->line('common_address_2'); ?></label>
+			<input id="address_2" type="text" value="{{address_2}}">
+		</div>
+		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
+			<label for="city" class="ui-input-text"><?php echo $this->lang->line('common_city'); ?></label>
+			<input id="city" type="text" value="{{city}}">
+		</div>
+		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
+			<label for="state" class="ui-input-text"><?php echo $this->lang->line('common_state'); ?></label>
+			<input id="state" type="text" value="{{state}}">
+		</div>
+		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
+			<label for="country" class="ui-input-text"><?php echo $this->lang->line('common_country'); ?></label>
+			<input id="country" type="text" value="{{country}}">
+		</div>
+
+		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >		
+		<label for="flip-1">Taxable:</label>
+			<select name="flip-1" id="flip-1" data-role="slider">
+				<option value="off">Off</option>
+				<option value="on">On</option>
+			</select>
+		</div>
 		
 		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br">
-			<label for="textarea">Textarea:</label>
-			<textarea name="textarea" id="textarea"></textarea>
+			<label for="textarea" class="ui-input-text"><?php echo $this->lang->line('common_comments'); ?></label>
+			<textarea name="textarea" id="comments">{{comments}}</textarea>
 		</div>
-		<!--</fieldset>-->
+		
+		<div>
+			<div><a href="#" data-icon="delete" data-role="button" data-theme="a"><?php echo $this->lang->line("common_delete")." ".$this->lang->line("customers_customer");?></a></div>
+			<fieldset class="ui-grid-a">
+				<div class="ui-block-a"><a href="#peopleList" data-icon="back" data-role="button" data-theme="a"><?php echo $this->lang->line("common_cancel");?></a></div>
+				<div class="ui-block-c"><a data-icon="check" href="#" data-role="button"data-theme="a"><?php echo $this->lang->line("common_save");?></a></div>
+			</fieldset>
+		</div>
+	
 	</div>
 </form>
-</td></tr>
+
+
 </script>
 
 

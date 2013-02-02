@@ -9,11 +9,8 @@
         <script src="<?php echo base_url();?>js/jquery-1.8.2.min.js"></script>
         <script src="<?php echo base_url();?>js/jquery.mobile-1.2.0.min.js"></script>
         <script src="<?php echo base_url();?>js/mustache.js"></script>
+		<meta name="viewport" content="width=devide-width, initial-scale=1, maximum-scale=1" />
     </head>
     <body>
-        <div data-role="page" data-theme="c">
-            <div data-role="header" data-position="inline">
-                <h1><?php echo $this->config->item('company'); ?></h1>
-               
-            </div>
-           <div data-role="content" data-theme="b">
+       
+
