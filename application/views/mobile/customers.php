@@ -8,7 +8,7 @@ $(document).ready(
 	var page = 1;
 	//var allJsonPeopleData = {};
 
-	var getPeople = function(groupType,personId){
+	var getPeople = (function(groupType,personId){
 		 if(typeof(groupType)==='undefined') groupType = 'customers';
 		 if(typeof(personId) === 'undefined') personId = -1;
 		$.ajax({
@@ -24,7 +24,7 @@ $(document).ready(
 		peopleData = json.peopleData;	
 		showPeople(json);
 		});
-	};
+	})();
 	
 	var getCustomer = function(personId){
 		 if(typeof(groupType)==='undefined') groupType = 'customers';
@@ -46,6 +46,7 @@ $(document).ready(
 			var html = Mustache.to_html(template, personData);
 			$('#personDetail_holder').html(html);
 			$('#personDetail_holder').trigger("create");
+			$("#delete_person").on("click",deletePerson);
 		});
 		
 	};
@@ -58,29 +59,58 @@ $(document).ready(
 		$('#list_holder').html(html);
 		$('#list_holder').trigger("create");
 		$('.personRow').on("click", editPerson);
-	}
+	};
 
 	var editPerson = function(e) {
-		
-		//console.log($(this).attr('class'));
-		//console.log($(this).find('a').attr('id'));
-	
+
 		var data ={};
 		var personJson;
-		// get the id of the clicked person
+		$('#personDetail_holder').html('please wait...');
 		var person_id = $(this).find('a').attr('id');
 		personJson = getCustomer(person_id);
-		//console.log(personJson);
-		//data = personJson;
-		//var template = $('#personDetail_template').html();
-		//var html = Mustache.to_html(template, data);
-		//$('#personDetail_holder').html(html);
-		//$('#personDetail_holder').trigger("create");
-	}
-	getPeople();
-}
-
-);
+	};
+	
+	var deletePerson = function (e){
+		// let's prompt whether we are sure to delete 
+		// this person
+		
+		do_delete($('#customer_form #person_id').val());
+		//let's call do_delete
+	};
+	
+	var do_delete = function(person_id) {
+		/*
+		var row_ids = get_selected_values();
+		var selected_rows = get_selected_rows();
+		$.post(url, { 'ids[]': row_ids },function(response)
+		{
+			//delete was successful, remove checkbox rows
+			if(response.success)
+			{
+				$(selected_rows).each(function(index, dom)
+				{
+					$(this).find("td").animate({backgroundColor:"green"},1200,"linear")
+					.end().animate({opacity:0},1200,"linear",function()
+					{
+						$(this).remove();
+						//Re-init sortable table as we removed a row
+						update_sortable_table();
+						
+					});
+				});	
+				set_feedback(response.message,'success_message',false);	
+			}
+			else
+			{
+				set_feedback(response.message,'error_message',true);	
+			}
+			
+	
+		},"json");*/
+		
+	};
+	
+});
 </script>
 
 <div data-role="page" data-theme="c" id="peopleList">
@@ -109,6 +139,7 @@ $(document).ready(
 		<a data-icon="grid" href="#peopleList"><?php echo $this->lang->line('module_customers'); ?></a>
 	</header>
 	
+
 	<article data-role="content" id="personDetail_holder"></article>
 	
 <?php 
@@ -132,11 +163,12 @@ var_dump($CI->lang);*/
 </script>
 
 <script id="personDetail_template" type="text/template">
-
-<form>
+	<div id="required_fields_message"><?php echo $this->lang->line('common_fields_required_message'); ?></div>
+	<ul id="error_message_box"></ul>
+<form id="customer_form">
 	<div class="ui-body ui-body-b">
 		
-		<input type="hidden" name="person_id" value="{{person_id}}" />
+		<input type="hidden" id="person_id" name="person_id" {{#person_id}}value="{{person_id}}"{{/person_id}} {{^person_id}}value="-1"{{/person_id}} />
 		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >
 			<label for="first_name"><?php echo $this->lang->line('common_first_name'); ?></label>
 			<input id="first_name" type="text" value="{{first_name}}">
@@ -186,15 +218,9 @@ var_dump($CI->lang);*/
 		
 		<div data-role="fieldcontain" class="ui-field-contain ui-body ui-br" >		
 		<label for="taxable"  class="ui-input-text"><?php echo $this->lang->line('customers_taxable'); ?></label>
-			<select name="taxable" id="taxable" data-role="slider">
-			{{#taxable}}
-				<option value="0"><?php echo $this->lang->line('common_no'); ?></option>
-				<option value="1" selecte><?php echo $this->lang->line('common_yes'); ?></option>
-			{{/taxable}}
-			{{^taxable}}
-				<option value="0" selected><?php echo $this->lang->line('common_no'); ?></option>
-				<option value="1"><?php echo $this->lang->line('common_yes'); ?></option>
-			{{/taxable}}
+			<select name="taxable" id="taxable" data-role="slider">		
+				<option value="0" {{^taxable}}selected{{/taxable}}><?php echo $this->lang->line('common_no'); ?></option>
+				<option value="1" {{#taxable}}selected{{/taxable}}><?php echo $this->lang->line('common_yes'); ?></option>
 			</select>
 			<?php //echo form_checkbox('taxable', '1', $person_info->taxable == '' ? TRUE : (boolean)$person_info->taxable);?>
 		</div>
@@ -205,10 +231,10 @@ var_dump($CI->lang);*/
 		</div>
 		
 		<div>
-			<div><a href="#" data-icon="delete" data-role="button" data-theme="a"><?php echo $this->lang->line("common_delete")." ".$this->lang->line("customers_customer");?></a></div>
+			<div><a href="#" id="delete_person" data-icon="delete" data-role="button" data-theme="a"><?php echo $this->lang->line("common_delete")." ".$this->lang->line("customers_customer");?></a></div>
 			<fieldset class="ui-grid-a">
-				<div class="ui-block-a"><a href="#peopleList" data-icon="back" data-role="button" data-theme="a"><?php echo $this->lang->line("common_cancel");?></a></div>
-				<div class="ui-block-c"><a data-icon="check" href="#" data-role="button"data-theme="a"><?php echo $this->lang->line("common_save");?></a></div>
+				<div class="ui-block-a"><a href="#peopleList" data-role="button" data-theme="a"><?php echo $this->lang->line("common_cancel");?></a></div>
+				<div class="ui-block-c"><a href="#" data-role="button"data-theme="a"><?php echo $this->lang->line("common_save");?></a></div>
 			</fieldset>
 		</div>
 	
