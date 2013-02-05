@@ -58,6 +58,17 @@ class Mobile_customers extends Customers
 		$data['json'] = '{"person":'.json_encode($this->Customer->get_info($customer_id)).'}';
 		$this->load->view('json_view',$data);
 	}
+	
+	function deleteCustomer($customer_id = -1){
+		if($customer_id > -1){
+			//$this->Customer->delete($customer_id);
+			$data['json'] = '{"success":1}';
+			$this->load->view('json_view',$data);
+		} else {
+			$data['json'] = '{"success":0}';
+			$this->load->view('json_view',$data);
+		}
+	}	
 
 }
 ?>

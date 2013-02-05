@@ -2,29 +2,40 @@
 
 <script type="text/javascript">
 
-$(document).ready(
-	function() {
+//$(document).ready(
+/*$("#peopleList").live('pageinit',
+	function() {*/
+	
 	var peopleData = {};
 	var page = 1;
-	//var allJsonPeopleData = {};
+	var postsPerPage = 30;
 
-	var getPeople = (function(groupType,personId){
-		 if(typeof(groupType)==='undefined') groupType = 'customers';
-		 if(typeof(personId) === 'undefined') personId = -1;
+	var getPeople = function(){
+		 
 		$.ajax({
 		
 		url: '<?php echo site_url('mobile_customers/customersJson/'); ?>',
 		type: 'POST',
-		data: 'grouptype='+groupType+'&personId='+personId+'&page='+page,
+		data: 'page='+page,
 		error: function(e) {
 			//called when there is an error
 			console.log(e.responseText);
 		}
 	}).done(function(json){
-		peopleData = json.peopleData;	
+		peopleData = json.peopleData;
+		page += 1;
 		showPeople(json);
 		});
-	})();
+	};
+	
+	var showPeople = function( json ) {
+		console.log(peopleData);
+		var template = $('#peopleList_template').html();
+		var html = Mustache.to_html(template, peopleData);
+		$('#list_holder').html(html);
+		$('#list_holder').trigger("create");
+		$('.personRow').on("click", editPerson);
+	};
 	
 	var getCustomer = function(personId){
 		 if(typeof(groupType)==='undefined') groupType = 'customers';
@@ -50,16 +61,6 @@ $(document).ready(
 		});
 		
 	};
-	
-	var showPeople = function( json ) {
-		
-		console.log(peopleData);
-		var template = $('#peopleList_template').html();
-		var html = Mustache.to_html(template, peopleData);
-		$('#list_holder').html(html);
-		$('#list_holder').trigger("create");
-		$('.personRow').on("click", editPerson);
-	};
 
 	var editPerson = function(e) {
 
@@ -73,52 +74,41 @@ $(document).ready(
 	var deletePerson = function (e){
 		// let's prompt whether we are sure to delete 
 		// this person
-		
-		do_delete($('#customer_form #person_id').val());
-		//let's call do_delete
+		var answer = confirm('<?php echo $this->lang->line("customers_confirm_delete"); ?>');
+		if (answer){
+			//let's call deleteOnePerson
+			deleteOnePerson($('#customer_form #person_id').val());
+		}
+
 	};
 	
-	var do_delete = function(person_id) {
-		/*
-		var row_ids = get_selected_values();
-		var selected_rows = get_selected_rows();
-		$.post(url, { 'ids[]': row_ids },function(response)
-		{
-			//delete was successful, remove checkbox rows
-			if(response.success)
-			{
-				$(selected_rows).each(function(index, dom)
-				{
-					$(this).find("td").animate({backgroundColor:"green"},1200,"linear")
-					.end().animate({opacity:0},1200,"linear",function()
-					{
-						$(this).remove();
-						//Re-init sortable table as we removed a row
-						update_sortable_table();
-						
-					});
-				});	
-				set_feedback(response.message,'success_message',false);	
-			}
-			else
-			{
-				set_feedback(response.message,'error_message',true);	
+	var deleteOnePerson = function(personId) {
+		
+		$.ajax({
+		url: '<?php echo site_url('mobile_customers/deleteCustomer/'); ?>/'+personId,
+		type: 'POST',
+		error: function(e) {
+			alert(e.responseText);
+		}
+		}).done(function(json){
+			if(json.success) {
+				$.mobile.changePage( "mobile_customers", { transition: "slide"} );
 			}
 			
-	
-		},"json");*/
+		});
 		
 	};
 	
-});
+//});
 </script>
 
 <div data-role="page" data-theme="c" id="peopleList">
 	<header data-role="header" data-position="inline">
 		<h1><?php echo $this->config->item('company'); ?></h1>
 	</header>
-
+	
 	<article data-role="content" data-theme="b">
+	<div id="message_bar"></div>
 		<h1><?php echo $this->lang->line('common_list_of').' '.$this->lang->line('module_customers'); ?></h1>
 
 		<!--<div id="table_action_header">
@@ -129,8 +119,11 @@ $(document).ready(
 
 		<div id="list_holder"></div>
 
-		<div id="feedback_bar"></div>
+	
 	</article>
+	<script type="text/javascript">
+		getPeople();
+	</script>
 </div> <!-- end of page -->
 
 <div data-role="page" id="personView">

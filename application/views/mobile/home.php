@@ -11,7 +11,7 @@
 	<?php
 	foreach($allowed_modules->result() as $module) {
 	?>
-	<li><a href="<?php echo site_url("mobile_"."$module->module_id");?>"><?php echo $this->lang->line("module_".$module->module_id) ?></a></li>
+	<li><a href="<?php echo site_url("mobile_"."$module->module_id");?>" data-ajax="false"><?php echo $this->lang->line("module_".$module->module_id) ?></a></li>
 		
 	<?php
 	}
