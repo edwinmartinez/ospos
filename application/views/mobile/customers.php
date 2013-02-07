@@ -2,34 +2,53 @@
 
 <script type="text/javascript">
 
-//$(document).ready(
-/*$("#peopleList").live('pageinit',
-	function() {*/
+
+//$("#peopleList").live('pageinit',
+ $(document).on('pagecreate',
+	function() {
 	
-	var peopleData = {};
-	var page = 1;
-	var postsPerPage = 30;
+	//var peopleData = {};
+	var pagination = function(){
+		var page = 1;
+		var postsPerPage = 30;
+		
+		return {
+			page : page,
+			postsPerPage : postsPerPage
+		}
+	}();
 
 	var getPeople = function(){
-		 
-		$.ajax({
+		var peopleData = peopleData || {};
+		var timestamp = new Date().getTime();
 		
-		url: '<?php echo site_url('mobile_customers/customersJson/'); ?>',
-		type: 'POST',
-		data: 'page='+page,
-		error: function(e) {
-			//called when there is an error
-			console.log(e.responseText);
-		}
-	}).done(function(json){
-		peopleData = json.peopleData;
-		page += 1;
-		showPeople(json);
-		});
+		
+		var aj = function() { $.ajax({
+			url: '<?php echo site_url('mobile_customers/get_customers/'); ?>/',
+			type: 'GET',
+			data: 'page='+pagination.page+'&time='+timestamp,
+			error: function(e) {
+				//called when there is an error
+				console.log(e.responseText);
+			}
+			}).done(function(json){
+				peopleData = json.peopleData;
+				pagination.page += 1;
+				showPeople(json);
+				
+			});
+			
+		}();
+		
+		//console.log(peopleData);
+		
+		return {
+			
+		};
 	};
 	
 	var showPeople = function( json ) {
-		console.log(peopleData);
+		var peopleData = json.peopleData;
 		var template = $('#peopleList_template').html();
 		var html = Mustache.to_html(template, peopleData);
 		$('#list_holder').html(html);
@@ -43,15 +62,15 @@
 		var personData;
 		$.ajax({
 		
-		url: '<?php echo site_url('mobile_customers/customerJson/'); ?>/'+personId,
-		type: 'POST',
+		url: '<?php echo site_url('mobile_customers/get_customers/'); ?>/'+personId,
+		type: 'GET',
 		//data: 'person_id='+personId,
 		error: function(e) {
 			console.log(e.responseText);
 		}
 		}).done(function(json){
 			personData = json.person;
-			console.log(personData);
+			
 			personData.taxable = personData.taxable == 1?true:false;
 			var template = $('#personDetail_template').html();
 			var html = Mustache.to_html(template, personData);
@@ -63,7 +82,6 @@
 	};
 
 	var editPerson = function(e) {
-
 		var data ={};
 		var personJson;
 		$('#personDetail_holder').html('please wait...');
@@ -93,19 +111,27 @@
 		}).done(function(json){
 			if(json.success) {
 				$.mobile.changePage( "mobile_customers", { transition: "slide"} );
+				getPeople();
 			}
 			
 		});
 		
 	};
-	
-//});
+	getPeople();
+});
+/*
+$(document).on('pageshow',function() {
+	alert(pagination.page);
+});
+*/
 </script>
 
 <div data-role="page" data-theme="c" id="peopleList">
 	<header data-role="header" data-position="inline">
 		<h1><?php echo $this->config->item('company'); ?></h1>
+		<a data-icon="plus" href="#personView"><?php echo $this->lang->line('customers_new'); ?></a>
 	</header>
+	
 	
 	<article data-role="content" data-theme="b">
 	<div id="message_bar"></div>
@@ -121,20 +147,18 @@
 
 	
 	</article>
-	<script type="text/javascript">
-		getPeople();
-	</script>
+
 </div> <!-- end of page -->
 
 <div data-role="page" id="personView">
 	<header data-role="header" data-position="fixed">
 		<h1><?php echo $this->config->item('company'); ?></h1>
 		<a data-icon="grid" href="#peopleList"><?php echo $this->lang->line('module_customers'); ?></a>
+		<a href="#" id="delete_person" data-icon="delete"  data-rel="dialog"><?php echo $this->lang->line("common_delete")." ".$this->lang->line("customers_customer");?></a>
 	</header>
-	
 
 	<article data-role="content" id="personDetail_holder"></article>
-	
+
 <?php 
 /*$CI =& get_instance();
 var_dump($CI->lang);*/
@@ -224,7 +248,7 @@ var_dump($CI->lang);*/
 		</div>
 		
 		<div>
-			<div><a href="#" id="delete_person" data-icon="delete" data-role="button" data-theme="a"><?php echo $this->lang->line("common_delete")." ".$this->lang->line("customers_customer");?></a></div>
+			
 			<fieldset class="ui-grid-a">
 				<div class="ui-block-a"><a href="#peopleList" data-role="button" data-theme="a"><?php echo $this->lang->line("common_cancel");?></a></div>
 				<div class="ui-block-c"><a href="#" data-role="button"data-theme="a"><?php echo $this->lang->line("common_save");?></a></div>
