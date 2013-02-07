@@ -76,6 +76,7 @@
 			var html = Mustache.to_html(template, personData);
 			$('#personDetail_holder').html(html);
 			$('#personDetail_holder').trigger("create");
+			$("#delete_person").unbind(); //unbind old bindings so that we don't have repeated prompts
 			$("#delete_person").on("click",deletePerson);
 		});
 		
@@ -92,11 +93,16 @@
 	var deletePerson = function (e){
 		// let's prompt whether we are sure to delete 
 		// this person
-		var answer = confirm('<?php echo $this->lang->line("customers_confirm_delete"); ?>');
+		
+		var answer = undefined;
+		console.log(e);
+		answer = confirm('<?php echo $this->lang->line("customers_confirm_delete"); ?>');
+		console.log(answer);
 		if (answer){
 			//let's call deleteOnePerson
 			deleteOnePerson($('#customer_form #person_id').val());
 		}
+		return;
 
 	};
 	
