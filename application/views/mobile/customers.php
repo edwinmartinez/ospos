@@ -3,20 +3,14 @@
 <script type="text/javascript">
 
 
-//$("#peopleList").live('pageinit',
- $(document).on('pagecreate',
+$("#peopleList").live('pageinit',
+// $(document).on('pagecreate',
 	function() {
 	
-	//var peopleData = {};
-	var pagination = function(){
-		var page = 1;
-		var postsPerPage = 30;
-		
-		return {
-			page : page,
-			postsPerPage : postsPerPage
-		}
-	}();
+		var peopleData = {};
+		var offset = 0;
+		var limit = 50;
+	
 
 	var getPeople = function(){
 		var peopleData = peopleData || {};
@@ -26,14 +20,14 @@
 		var aj = function() { $.ajax({
 			url: '<?php echo site_url('mobile_customers/get_customers/'); ?>/',
 			type: 'GET',
-			data: 'page='+pagination.page+'&time='+timestamp,
+			data: 'offset='+offset+'&limit='+limit+'&time='+timestamp,
 			error: function(e) {
 				//called when there is an error
 				console.log(e.responseText);
 			}
 			}).done(function(json){
 				peopleData = json.peopleData;
-				pagination.page += 1;
+				offset += 1;
 				showPeople(json);
 				
 			});
@@ -53,7 +47,10 @@
 		var html = Mustache.to_html(template, peopleData);
 		$('#list_holder').html(html);
 		$('#list_holder').trigger("create");
+		$('.personRow').unbind();
 		$('.personRow').on("click", editPerson);
+		$('#new_customer').unbind();
+		$('#new_customer').on("click", newCustomer);
 	};
 	
 	var getCustomer = function(personId){
@@ -81,7 +78,20 @@
 		});
 		
 	};
-
+	
+	var newCustomer = function(){
+		var personData = {};
+		personData.person_id = -1;
+		//$('#personDetail_holder').html('please wait...');
+		personData.taxable = true;
+		console.log(personData);
+		var template = $('#personDetail_template').html();
+		var html = Mustache.to_html(template, personData);
+		$('#personDetail_holder').html(html);
+		$('#personDetail_holder').trigger("create");
+		
+	}
+	
 	var editPerson = function(e) {
 		var data ={};
 		var personJson;
@@ -125,17 +135,13 @@
 	};
 	getPeople();
 });
-/*
-$(document).on('pageshow',function() {
-	alert(pagination.page);
-});
-*/
+
 </script>
 
 <div data-role="page" data-theme="c" id="peopleList">
 	<header data-role="header" data-position="inline">
 		<h1><?php echo $this->config->item('company'); ?></h1>
-		<a data-icon="plus" href="#personView"><?php echo $this->lang->line('customers_new'); ?></a>
+		<a data-icon="plus" href="#personView" id="new_customer"><?php echo $this->lang->line('customers_new'); ?></a>
 	</header>
 	
 	
